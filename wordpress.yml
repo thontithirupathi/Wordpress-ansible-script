@@ -1,0 +1,75 @@
+---
+- hosts: localhost
+  become: yes
+  vars:
+    mysql_root_password: fart
+  tasks:
+  - name: install 
+    apt: name={{ item }} state=present
+    with_items:
+      - apache2
+      - libapache2-mod-php7.0
+      - php7.0-mysql  
+  - name: Install MySQL
+    apt: name=mysql-server state=present
+  #- name: copy cnf
+  #  copy: src=.my.cnf dest=~/.my.cnf owner=ubuntu mode=0644
+  #  sudo: yes
+  - name: Start the MySQL service
+    service: 
+      name: mysql 
+      state: started
+      enabled: true
+  - name: update mysql root password for all root accounts
+    mysql_user: 
+      name: root 
+      host: "{{ item }}" 
+      password: "{{ mysql_root_password }}"
+      login_user: root
+      login_password: "{{ mysql_root_password }}"
+      check_implicit_admin: yes
+      priv: "*.*:ALL,GRANT"
+    with_items:
+      - "{{ ansible_hostname }}"
+      - 127.0.0.1
+      - ::1
+      - localhost
+      
+  - name: downloading the wordpress
+    get_url:
+      url: https://wordpress.org/latest.tar.gz
+      dest: /var/www/html/
+      
+  - name: unarchive the zip
+    unarchive:
+      src: /var/www/html/wordpress-4.8.1.tar.gz
+      dest: /var/www/html/
+   
+  - name: restarting apache2
+    service: 
+     name: apache2
+     state: started
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      
+
+      
+     
+  
+
+    
+      
+     
